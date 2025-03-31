@@ -14,7 +14,7 @@ body, html {
     width: 100vw;
     height: 100vh;
     background: rgba(128, 208, 255, 0.12);
-    backdrop-filter: blur(10px) saturate(160%);
+    /* backdrop-filter: blur(10px) saturate(160%); */
     z-index: 5;               /* 🔽 lower than drawer */
     transition: opacity 0.4s ease;
     opacity: 1;
@@ -653,7 +653,7 @@ body, html {
   }
   
   .focus-header {
-    font-size: 16px;
+    font-size: 20px;
     margin-bottom: 16px;
     font-family: 'Space Mono', monospace;
     color: #ffffffcc;
@@ -952,5 +952,19 @@ body, html {
   
   .goal-item.removing {
     animation: glowTrail 0.5s ease-out forwards;
+  }
+  
+
+  /* CSS for hiding */
+#focusDrawer.hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translate(-50%, -20px);
+  }
+  
+  /* When shown, allow interaction */
+  #focusDrawer {
+    pointer-events: auto;
   }
   

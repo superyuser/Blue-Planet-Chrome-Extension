@@ -367,28 +367,25 @@ window.addEventListener("DOMContentLoaded", () => {
     showNameInputMode();
   }
 
-  const drawer = document.getElementById("focusDrawer");
-const toggleFocusDrawer = document.getElementById("toggleFocusDrawer");
+  const toggleBtn = document.getElementById("toggleFocusDrawer");
+const focusDrawer = document.getElementById("focusDrawer");
 const focusOverlayBg = document.getElementById("focusOverlayBg");
 
-toggleFocusDrawer.addEventListener("click", () => {
-  if (drawer.classList.contains("hidden")) {
-    drawer.classList.remove("hidden");
-    drawer.style.animation = "flyFromCorner 0.4s ease-out forwards";
-
-    // Show background dim
+toggleBtn.addEventListener("click", () => {
+  if (focusDrawer.classList.contains("hidden")) {
+    focusDrawer.classList.remove("hidden");
+    focusDrawer.style.animation = "flyFromCorner 0.4s ease-out forwards";
     focusOverlayBg.classList.remove("hidden");
   } else {
-    drawer.style.animation = "flyToCorner 0.3s ease-in forwards";
-
-    // Fade out then hide overlay
+    focusDrawer.style.animation = "flyToCorner 0.3s ease-in forwards";
     setTimeout(() => {
-      drawer.classList.add("hidden");
-      drawer.style.animation = "";
+      focusDrawer.classList.add("hidden");
+      focusDrawer.style.animation = "";
       focusOverlayBg.classList.add("hidden");
     }, 300);
   }
 });
+
 
   
 
