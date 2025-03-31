@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DENOISE</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Doto:wght@100..900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Rubik+Broken+Fax&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Rubik+Broken+Fax&family=VT323&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Rubik+Broken+Fax&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&family=VT323&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rubik+Broken+Fax&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&family=VT323&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="bg"></div>
+    <div id="menuWrapper">
+        <button id="menuBtn" aria-label="Open menu">🙈</button>
+        <div id="dropdown" class="hidden space-mono-regular">
+            <h3>Today I did:</h3>
+            <div id="completedList" class="goal-list"></div>
+        </div>
+    </div>
+    <div class="content">
+        <h1 id="time" class="rubik-broken-fax-regular glow-pulse"></h1>
+    <!-- Only shown during name entry -->
+    <div id="nameEntry" class="hidden">
+        <p id="namePrompt" class="press-start-2p-regular">What's your name?</p>
+        <input
+        id="nameInput"
+        placeholder="example..."
+        autocomplete="off"
+        autocorrect="off"
+        autocapitalize="off"
+        spellcheck="false"
+        />
+
+      </div>
+      
+      <div id="mainApp" class="hidden">
+        <h2 id="greeting" class="doto-title"></h2>
+        <p id="prompt" class="press-start-2p-regular"></p>
+
+        <div class="input-wrapper">
+            <span class="blinking-cursor"></span>
+            <input
+            id="goalInput"
+            placeholder="start typing..."
+            autocomplete="off"
+            autocorrect="off"
+            autocapitalize="off"
+            spellcheck="false"
+            />
+        </div>
+        
+      
+        <div id="todoContainer">
+            <div id="goalList" class="goal-list"></div>
+          </div>
+          
+      </div>
+      
+  
+
+
+    </div>
+
+
+    <svg id="graph" width="100%" height="100%"></svg>
+    <div class="name">Enter your name: </div>
+
+    <script type="module" src="script.js"></script>
+</body>
+</html>
