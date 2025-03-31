@@ -1,75 +1,110 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>DENOISE</title>
-    <link rel="stylesheet" href="styles.css" />
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Doto:wght@100..900&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Rubik+Broken+Fax&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Rubik+Broken+Fax&family=VT323&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Rubik+Broken+Fax&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&family=VT323&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rubik+Broken+Fax&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&family=VT323&display=swap" rel="stylesheet">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DENOISE</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Doto:wght@100..900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Rubik+Broken+Fax&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Rubik+Broken+Fax&family=VT323&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Rubik+Broken+Fax&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&family=VT323&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rubik+Broken+Fax&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&family=VT323&display=swap" rel="stylesheet">
+  <!-- confetttiiiii! -->
+
 </head>
 <body>
-    <div id="bg"></div>
-    <div id="menuWrapper">
-        <button id="menuBtn" aria-label="Open menu">🙈</button>
+  <div id="bg"></div>
+  <button id="toggleFocusDrawer">🧘 Focus Mode</button>
+  <div id="focusOverlayBg" class="hidden"></div>
+  <div id="menuWrapper">
+    <div id="menuArea">
+        <button id="menuBtn" aria-label="Open menu">📖 My Tasks</button>
         <div id="dropdown" class="hidden space-mono-regular">
             <h3>Today I did:</h3>
-            <div id="completedList" class="goal-list"></div>
+        <div id="completedList" class="goal-list"></div>
         </div>
     </div>
-    <div class="content">
-        <h1 id="time" class="rubik-broken-fax-regular glow-pulse"></h1>
-    <!-- Only shown during name entry -->
+  </div>
+
+  <div class="content">
+    <h1 id="time" class="rubik-broken-fax-regular glow-pulse"></h1>
+
+    
+
+    <!-- Focus Drawer -->
+    <div id="focusDrawer" class="hidden">
+        <div class="focus-header">Set your focus session</div>
+      
+        <input id="focusTaskInput" placeholder="start typing..." />
+      
+        <div class="focus-controls">
+          <input id="focusMinutes" type="number" min="1" value="60" />
+          <div class="toggle-wrapper">
+            <label class="switch">
+              <input type="checkbox" id="rainToggle" checked />
+              <span class="slider"></span>
+            </label>
+            <span class="toggle-label">🌧️ Rain</span>
+          </div>
+          
+          
+        </div>
+        <div class="focus-start">
+            <button id="startFocusBtn">Start Focus</button>
+        </div>
+      </div>
+      
+
+    <!-- Focus Overlay Timer -->
+    <div id="focusOverlay" class="hidden">
+      <div id="focusTaskDisplay"></div>
+      <div id="focusTimer"></div>
+      <button id="endFocusBtn">End Focus</button>
+    </div>
+
+    <audio id="rainAudio" loop src="./audio/rain.mp3"></audio>
+
+    <!-- Name Entry -->
     <div id="nameEntry" class="hidden">
-        <p id="namePrompt" class="press-start-2p-regular">What's your name?</p>
-        <input
+      <p id="namePrompt" class="press-start-2p-regular">What's your name?</p>
+      <input
         id="nameInput"
         placeholder="example..."
         autocomplete="off"
         autocorrect="off"
         autocapitalize="off"
         spellcheck="false"
-        />
-
-      </div>
-      
-      <div id="mainApp" class="hidden">
-        <h2 id="greeting" class="doto-title"></h2>
-        <p id="prompt" class="press-start-2p-regular"></p>
-
-        <div class="input-wrapper">
-            <span class="blinking-cursor"></span>
-            <input
-            id="goalInput"
-            placeholder="start typing..."
-            autocomplete="off"
-            autocorrect="off"
-            autocapitalize="off"
-            spellcheck="false"
-            />
-        </div>
-        
-      
-        <div id="todoContainer">
-            <div id="goalList" class="goal-list"></div>
-          </div>
-          
-      </div>
-      
-  
-
-
+      />
     </div>
 
+    <!-- Main App -->
+    <div id="mainApp" class="hidden">
+      <h2 id="greeting" class="doto-title"></h2>
+      <p id="prompt" class="press-start-2p-regular"></p>
 
-    <svg id="graph" width="100%" height="100%"></svg>
-    <div class="name">Enter your name: </div>
+      <div class="input-wrapper">
+        <span class="blinking-cursor"></span>
+        <input
+          id="goalInput"
+          placeholder="start typing..."
+          autocomplete="off"
+          autocorrect="off"
+          autocapitalize="off"
+          spellcheck="false"
+        />
+      </div>
 
-    <script type="module" src="script.js"></script>
+      <div id="todoContainer">
+        <div id="goalList" class="goal-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <svg id="graph" width="100%" height="100%"></svg>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <script type="module" src="script.js"></script>
 </body>
 </html>
