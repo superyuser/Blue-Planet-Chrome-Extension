@@ -69,7 +69,7 @@ body, html {
     background: rgba(255, 255, 255, 0.1);
     border: none;
     color: white;
-    font-size: 6px;
+    font-size: 16px;
     border-radius: 6px;
     padding: 4px 8px;
     cursor: pointer;
@@ -157,7 +157,7 @@ body, html {
     color: white;
     font-size: 36px;
     border-radius: 8px;
-    width: 160px;
+    width: 200px;
     height: 36px;
     cursor: pointer;
     backdrop-filter: blur(4px);
@@ -167,11 +167,11 @@ body, html {
 
   #menuBtn {
   font-family: "Space Mono", monospace;
-  font-size: 18px;
+  font-size: 22px;
   color: white;
-  padding: 6px 12px;
+  padding: 10px 20px;
   border: none;
-  border-radius: 12px;
+  border-radius: 20px;
   background: rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(6px);
   cursor: pointer;
@@ -179,6 +179,7 @@ body, html {
   display: flex;
   align-items: center;
   gap: 8px;
+  margin-top: 20px;
 }
 
 #menuBtn:hover {
@@ -629,7 +630,7 @@ body, html {
     border: none;
     color: white;
     padding: 6px 12px;
-    font-size: 18px;
+    font-size: 22px;
     font-family: 'Space Mono', monospace;
     border-radius: 10px;
     backdrop-filter: blur(5px);
