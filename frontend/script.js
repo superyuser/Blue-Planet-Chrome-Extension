@@ -285,6 +285,9 @@ function startFocusSession() {
   const mins = parseInt(document.getElementById("focusMinutes").value) || 60;
   remainingSeconds = mins * 60;
 
+  const taskText = document.getElementById("focusTaskInput").value.trim() || "Unnamed task";
+  document.getElementById("focusTaskDisplay").textContent = `I will focus on: ${taskText}`;
+
   focusOverlay.classList.remove("hidden");
   focusTimer.textContent = formatTime(remainingSeconds);
 
@@ -297,7 +300,10 @@ function startFocusSession() {
       endFocusSession(true);
     }
   }, 1000);
+
+  document.getElementById("focusDrawer").classList.add("hidden");
 }
+
 
 function endFocusSession(completed = false) {
   clearInterval(focusInterval);
@@ -317,7 +323,7 @@ function logFocusSession() {
     duration: parseInt(document.getElementById("focusMinutes").value)
     });
 
-    const taskText = document.getElementById("focusTask").value || "Unnamed task";
+    const taskText = document.getElementById("focusTaskInput").value || "Unnamed task";
     log.push({
     time: now.toLocaleTimeString(),
     date: now.toLocaleDateString(),
@@ -385,6 +391,14 @@ toggleBtn.addEventListener("click", () => {
     }, 300);
   }
 });
+
+document.getElementById("focusTaskInput").addEventListener("keypress", function (e) {
+  if (e.key === "Enter") {
+    e.preventDefault();
+    focusBtn.click();  // triggers startFocusSession()
+  }
+});
+
 
 
   
