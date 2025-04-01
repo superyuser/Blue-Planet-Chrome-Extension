@@ -115,18 +115,6 @@ function renderCompletedGoal(text) {
     removeBtn.addEventListener("click", (e) => {
         e.stopPropagation(); // Prevent event bubbling
         
-        // Store click position
-        const xPos = e.clientX / window.innerWidth;
-        const yPos = e.clientY / window.innerHeight;
-        
-        // Fire confetti
-        confetti({
-            particleCount: 100,
-            spread: 70,
-            origin: { x: xPos, y: yPos },
-            zIndex: 9999 // Ensure it's above other elements
-        });
-        
         // Fade out animation
         item.style.opacity = '0';
         item.style.transition = 'opacity 300ms ease-out';
@@ -169,6 +157,14 @@ function addGoal(text, save = true) {
   const checkBox = goalItem.querySelector("input[type='checkbox']");
   checkBox.addEventListener("change", () => {
     if (checkBox.checked) {
+        // Fire confetti immediately from center of window
+        confetti({
+            particleCount: 150,
+            spread: 100,
+            origin: { x: 0.5, y: 0.5 },
+            zIndex: 9999
+        });
+
         // 💥 Animate item out before removing
         goalItem.classList.add("goal-exit");
         goalItem.classList.add("removing");
@@ -311,28 +307,59 @@ function endFocusSession(completed = false) {
   rainAudio.pause();
   rainAudio.currentTime = 0;
 
-  if (completed) logFocusSession();
+  if (completed) {
+    logFocusSession();
+    renderFocusHistory(); // 👈 this updates the UI right after saving
+  }
+  
+}
+
+
+function renderFocusHistory() {
+  const list = document.getElementById("focusHistoryList");
+  const today = `focusLog-${new Date().toISOString().split('T')[0]}`;
+  const log = JSON.parse(localStorage.getItem(today) || "[]");
+  
+  list.innerHTML = "<h2>Total Focus Time</h2>";
+  const totalMinutes = log.reduce((total, entry) => total + entry.duration, 0);
+  const totalHours = Math.floor(totalMinutes / 60);
+  const totalMinutesRemainder = totalMinutes % 60;
+  list.innerHTML += `<h3>${totalHours}h ${totalMinutesRemainder}m</h3>`;
+  list.innerHTML += `<p>Your focus log:</p>`;
+
+
+  if (log.length == 0) {
+    list.innerHTML = "<p>No focus history for today</p>";
+  } else {
+    log.forEach((entry, i) => {
+      const div = document.createElement("div");
+      div.className = "focus-entry";
+      div.innerHTML = `
+        <span class="focus-time">At ${entry.time.slice(0, 5)}, you focused for</span>
+        <span class="focus-duration">${entry.duration}min</span>
+        <span class="focus-task">on ${entry.task}</span>
+      `;
+      list.appendChild(div);
+    });
+  }
 }
 
 function logFocusSession() {
-    const log = JSON.parse(localStorage.getItem("focusLog") || "[]");
-    const now = new Date();
-    log.push({
-    time: now.toLocaleTimeString(),
-    date: now.toLocaleDateString(),
-    duration: parseInt(document.getElementById("focusMinutes").value)
-    });
+  const now = new Date();
+  const todayKey = `focusLog-${now.toISOString().split('T')[0]}`;
+  const taskText = document.getElementById("focusTaskInput").value || "Unnamed task";
 
-    const taskText = document.getElementById("focusTaskInput").value || "Unnamed task";
-    log.push({
+  const log = JSON.parse(localStorage.getItem(todayKey) || "[]");
+  log.push({
     time: now.toLocaleTimeString(),
     date: now.toLocaleDateString(),
     duration: parseInt(document.getElementById("focusMinutes").value),
     task: taskText
-    });
+  });
 
-    localStorage.setItem("focusLog", JSON.stringify(log));
+  localStorage.setItem(todayKey, JSON.stringify(log));
 }
+
 
 focusBtn.addEventListener("click", startFocusSession);
 endFocusBtn.addEventListener("click", () => {
@@ -352,7 +379,7 @@ endFocusBtn.addEventListener("click", () => {
         }
       });
       
-    endFocusSession(false);
+    endFocusSession(true);
 });
 
 
@@ -376,6 +403,8 @@ window.addEventListener("DOMContentLoaded", () => {
   const toggleBtn = document.getElementById("toggleFocusDrawer");
 const focusDrawer = document.getElementById("focusDrawer");
 const focusOverlayBg = document.getElementById("focusOverlayBg");
+const showFocusHistoryBtn = document.getElementById("showFocusHistory");
+const focusHistoryDropdown = document.getElementById("focusHistoryDropdown");
 
 toggleBtn.addEventListener("click", () => {
   if (focusDrawer.classList.contains("hidden")) {
@@ -389,6 +418,23 @@ toggleBtn.addEventListener("click", () => {
       focusDrawer.style.animation = "";
       focusOverlayBg.classList.add("hidden");
     }, 300);
+  }
+});
+
+showFocusHistoryBtn.addEventListener("click", () => {
+  const isHidden = focusHistoryDropdown.classList.contains("hidden");
+  
+  if (isHidden) {
+    // Render content first
+    renderFocusHistory();
+    // Then show and animate
+    focusHistoryDropdown.classList.remove("hidden");
+    focusHistoryDropdown.style.animation = "flyFromCorner 0.4s ease-out forwards";
+  } else {
+    focusHistoryDropdown.style.animation = "flyToCorner 0.1s ease-in forwards";
+    setTimeout(() => {
+      focusHistoryDropdown.classList.add("hidden");
+    }, 100); // Match animation duration
   }
 });
 
