@@ -115,6 +115,18 @@ function renderCompletedGoal(text) {
     removeBtn.addEventListener("click", (e) => {
         e.stopPropagation(); // Prevent event bubbling
         
+        // Store click position
+        const xPos = e.clientX / window.innerWidth;
+        const yPos = e.clientY / window.innerHeight;
+        
+        // Fire confetti
+        confetti({
+            particleCount: 100,
+            spread: 70,
+            origin: { x: xPos, y: yPos },
+            zIndex: 9999 // Ensure it's above other elements
+        });
+        
         // Fade out animation
         item.style.opacity = '0';
         item.style.transition = 'opacity 300ms ease-out';
