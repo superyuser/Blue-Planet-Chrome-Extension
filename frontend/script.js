@@ -48,7 +48,7 @@ function greetingTime(name) {
         const newName = prompt("Change your name:");
         if (newName) {
           const trimmed = newName.trim();
-          localStorage.setItem("username", trimmed);
+          storage.set("username", trimmed);
           document.getElementById("name").textContent = trimmed;
         }
       });
@@ -56,40 +56,63 @@ function greetingTime(name) {
 }
 
 // 🧠 LocalStorage helpers
-function getTodayKey() {
+const storage = {
+  async get(key) {
+    if (typeof chrome !== 'undefined' && chrome.storage) {
+      const result = await chrome.storage.local.get(key);
+      return result[key];
+    } else {
+      return localStorage.getItem(key);
+    }
+  },
+  
+  async set(key, value) {
+    if (typeof chrome !== 'undefined' && chrome.storage) {
+      await chrome.storage.local.set({ [key]: value });
+    } else {
+      localStorage.setItem(key, value);
+    }
+  }
+};
+
+async function getTodayKey() {
   return new Date().toISOString().split('T')[0];
 }
 
-function getActiveGoals() {
-  return JSON.parse(localStorage.getItem("activeGoals") || "[]");
+async function getActiveGoals() {
+  const goals = await storage.get("activeGoals");
+  return JSON.parse(goals || "[]");
 }
 
-function saveActiveGoal(text) {
-  const goals = getActiveGoals();
+async function saveActiveGoal(text) {
+  const goals = await getActiveGoals();
   goals.push(text);
-  localStorage.setItem("activeGoals", JSON.stringify(goals));
+  await storage.set("activeGoals", JSON.stringify(goals));
 }
 
-function removeActiveGoal(text) {
-  const goals = getActiveGoals().filter(goal => goal !== text);
-  localStorage.setItem("activeGoals", JSON.stringify(goals));
+async function removeActiveGoal(text) {
+  const goals = await getActiveGoals();
+  const filtered = goals.filter(goal => goal !== text);
+  await storage.set("activeGoals", JSON.stringify(filtered));
 }
 
-function logCompletedGoal(text) {
-  const key = getTodayKey();
-  const goals = JSON.parse(localStorage.getItem(key) || "[]");
+async function logCompletedGoal(text) {
+  const key = await getTodayKey();
+  const goalsStr = await storage.get(key);
+  const goals = JSON.parse(goalsStr || "[]");
   goals.push(text);
-  localStorage.setItem(key, JSON.stringify(goals));
+  await storage.set(key, JSON.stringify(goals));
   renderCompletedGoal(text);
 }
 
-function removeGoalFromStorage(text) {
-  const key = getTodayKey();
-  const goals = JSON.parse(localStorage.getItem(key) || "[]").filter(goal => goal !== text);
-  localStorage.setItem(key, JSON.stringify(goals));
+async function removeGoalFromStorage(text) {
+  const key = await getTodayKey();
+  const goalsStr = await storage.get(key);
+  const goals = JSON.parse(goalsStr || "[]").filter(goal => goal !== text);
+  await storage.set(key, JSON.stringify(goals));
 }
 
-function maybeHideContainer() {
+async function maybeHideContainer() {
   if (goalList.children.length === 0) {
     todoContainer.classList.remove("visible");
   }
@@ -112,7 +135,7 @@ function renderCompletedGoal(text) {
     goalText.className = "goal-text";
     goalText.textContent = text;
   
-    removeBtn.addEventListener("click", (e) => {
+    removeBtn.addEventListener("click", async (e) => {
         e.stopPropagation(); // Prevent event bubbling
         
         // Store click position
@@ -132,9 +155,9 @@ function renderCompletedGoal(text) {
         item.style.transition = 'opacity 300ms ease-out';
         
         // Remove after animation completes
-        setTimeout(() => {
+        setTimeout(async () => {
             list.removeChild(item);
-            removeGoalFromStorage(text);
+            await removeGoalFromStorage(text);
         }, 300);
     });
       
@@ -150,7 +173,7 @@ function renderCompletedGoal(text) {
   
   
 
-function addGoal(text, save = true) {
+async function addGoal(text, save = true) {
   const goalItem = document.createElement("div");
   goalItem.className = "goal-item highlighted shimmer";
 
@@ -167,7 +190,7 @@ function addGoal(text, save = true) {
   );
 
   const checkBox = goalItem.querySelector("input[type='checkbox']");
-  checkBox.addEventListener("change", () => {
+  checkBox.addEventListener("change", async () => {
     if (checkBox.checked) {
         // Fire confetti immediately from center of window
         confetti({
@@ -181,9 +204,9 @@ function addGoal(text, save = true) {
         goalItem.classList.add("goal-exit");
         goalItem.classList.add("removing");
       
-        setTimeout(() => {
-          logCompletedGoal(text);
-          removeActiveGoal(text);
+        setTimeout(async () => {
+          await logCompletedGoal(text);
+          await removeActiveGoal(text);
           goalList.removeChild(goalItem);
           maybeHideContainer();
         }, 500); // ⏳ matches the CSS animation duration
@@ -194,7 +217,7 @@ function addGoal(text, save = true) {
   goalList.prepend(goalItem);
   todoContainer.classList.add("visible");
 
-  if (save) saveActiveGoal(text);
+  if (save) await saveActiveGoal(text);
 
   // 💥 Visual surprise effect
   goalItem.animate([
@@ -206,9 +229,9 @@ function addGoal(text, save = true) {
   });
 }
 
-function handleGoalInput(e) {
+async function handleGoalInput(e) {
   if (e.key === "Enter" && goalInput.value.trim()) {
-    addGoal(goalInput.value.trim());
+    await addGoal(goalInput.value.trim());
     goalInput.value = "";
     cursor.style.display = "inline"; // reset cursor
   }
@@ -226,20 +249,22 @@ function typePromptText(text, elementId, speed = 50) {
   }, speed);
 }
 
-function startApp(name) {
+async function startApp(name) {
   greetingTime(name);
   updateTime();
   setInterval(updateTime, 60000);
 
-  getActiveGoals().forEach(text => addGoal(text, false));
+  const goals = await getActiveGoals();
+  goals.forEach(text => addGoal(text, false));
   goalInput.addEventListener("input", () => {
     cursor.style.display = goalInput.value ? "none" : "inline";
   });
   goalInput.addEventListener("keypress", handleGoalInput);
 
-  const todayKey = getTodayKey();
-  const completed = JSON.parse(localStorage.getItem(todayKey) || "[]");
-  completed.forEach(renderCompletedGoal);
+  const todayKey = await getTodayKey();
+  const completed = await storage.get(todayKey);
+  const completedGoals = JSON.parse(completed || "[]");
+  completedGoals.forEach(renderCompletedGoal);
 
   const menuArea = document.getElementById('menuArea');
 
@@ -255,20 +280,20 @@ function startApp(name) {
   typePromptText("What will you create today?", "prompt", 60);
 }
 
-function showNameInputMode() {
+async function showNameInputMode() {
   nameInput.placeholder = "example...";
   nameEntry.classList.remove("hidden");
   mainApp.classList.add("hidden");
 
-  nameInput.addEventListener("keypress", function handler(e) {
+  nameInput.addEventListener("keypress", async function handler(e) {
     if (e.key === "Enter" && nameInput.value.trim()) {
       const name = nameInput.value.trim();
-      localStorage.setItem("username", name);
+      await storage.set("username", name);
       nameInput.removeEventListener("keypress", handler);
       nameInput.value = "";
       nameEntry.classList.add("hidden");
       mainApp.classList.remove("hidden");
-      startApp(name);
+      await startApp(name);
     }
   });
 }
@@ -289,7 +314,7 @@ function formatTime(seconds) {
   return `${m}:${s}`;
 }
 
-function startFocusSession() {
+async function startFocusSession() {
   const mins = parseInt(document.getElementById("focusMinutes").value) || 60;
   remainingSeconds = mins * 60;
 
@@ -313,24 +338,41 @@ function startFocusSession() {
 }
 
 
-function endFocusSession(completed = false) {
+async function endFocusSession(completed = false) {
   clearInterval(focusInterval);
   focusOverlay.classList.add("hidden");
   rainAudio.pause();
   rainAudio.currentTime = 0;
 
   if (completed) {
-    logFocusSession();
-    renderFocusHistory(); // 👈 this updates the UI right after saving
+    await logFocusSession();
+    await renderFocusHistory(); // 👈 this updates the UI right after saving
   }
   
 }
 
+async function logFocusSession() {
+  const now = new Date();
+  const todayKey = `focusLog-${now.toISOString().split('T')[0]}`;
+  const taskText = document.getElementById("focusTaskInput").value || "Unnamed task";
 
-function renderFocusHistory() {
+  const logStr = await storage.get(todayKey);
+  const log = JSON.parse(logStr || "[]");
+  log.push({
+    time: now.toLocaleTimeString(),
+    date: now.toLocaleDateString(),
+    duration: parseInt(document.getElementById("focusMinutes").value),
+    task: taskText
+  });
+
+  await storage.set(todayKey, JSON.stringify(log));
+}
+
+async function renderFocusHistory() {
   const list = document.getElementById("focusHistoryList");
   const today = `focusLog-${new Date().toISOString().split('T')[0]}`;
-  const log = JSON.parse(localStorage.getItem(today) || "[]");
+  const logStr = await storage.get(today);
+  const log = JSON.parse(logStr || "[]");
   
   list.innerHTML = "<h2>Total Focus Time</h2>";
   const totalMinutes = log.reduce((total, entry) => total + entry.duration, 0);
@@ -338,7 +380,6 @@ function renderFocusHistory() {
   const totalMinutesRemainder = totalMinutes % 60;
   list.innerHTML += `<h3>${totalHours}h ${totalMinutesRemainder}m</h3>`;
   list.innerHTML += `<p>Your focus log:</p>`;
-
 
   if (log.length == 0) {
     list.innerHTML = "<p>No focus history for today</p>";
@@ -356,25 +397,8 @@ function renderFocusHistory() {
   }
 }
 
-function logFocusSession() {
-  const now = new Date();
-  const todayKey = `focusLog-${now.toISOString().split('T')[0]}`;
-  const taskText = document.getElementById("focusTaskInput").value || "Unnamed task";
-
-  const log = JSON.parse(localStorage.getItem(todayKey) || "[]");
-  log.push({
-    time: now.toLocaleTimeString(),
-    date: now.toLocaleDateString(),
-    duration: parseInt(document.getElementById("focusMinutes").value),
-    task: taskText
-  });
-
-  localStorage.setItem(todayKey, JSON.stringify(log));
-}
-
-
 focusBtn.addEventListener("click", startFocusSession);
-endFocusBtn.addEventListener("click", () => {
+endFocusBtn.addEventListener("click", async () => {
     confetti({
         particleCount: 80,
         angle: 90,
@@ -391,75 +415,67 @@ endFocusBtn.addEventListener("click", () => {
         }
       });
       
-    endFocusSession(true);
+    await endFocusSession(true);
 });
 
-
-window.addEventListener("DOMContentLoaded", () => {
+// Update event listeners to handle async operations
+window.addEventListener("DOMContentLoaded", async () => {
   updateTime();
   setInterval(updateTime, 60000);
 
   
 
-  const savedName = localStorage.getItem("username");
-
-
+  const savedName = await storage.get("username");
   if (savedName) {
     nameEntry.classList.add("hidden");
     mainApp.classList.remove("hidden");
-    startApp(savedName);
+    await startApp(savedName);
   } else {
-    showNameInputMode();
+    await showNameInputMode();
   }
 
   const toggleBtn = document.getElementById("toggleFocusDrawer");
-const focusDrawer = document.getElementById("focusDrawer");
-const focusOverlayBg = document.getElementById("focusOverlayBg");
-const showFocusHistoryBtn = document.getElementById("showFocusHistory");
-const focusHistoryDropdown = document.getElementById("focusHistoryDropdown");
+  const focusDrawer = document.getElementById("focusDrawer");
+  const focusOverlayBg = document.getElementById("focusOverlayBg");
+  const showFocusHistoryBtn = document.getElementById("showFocusHistory");
+  const focusHistoryDropdown = document.getElementById("focusHistoryDropdown");
 
-toggleBtn.addEventListener("click", () => {
-  if (focusDrawer.classList.contains("hidden")) {
-    focusDrawer.classList.remove("hidden");
-    focusDrawer.style.animation = "flyFromCorner 0.4s ease-out forwards";
-    focusOverlayBg.classList.remove("hidden");
-  } else {
-    focusDrawer.style.animation = "flyToCorner 0.3s ease-in forwards";
-    setTimeout(() => {
-      focusDrawer.classList.add("hidden");
-      focusDrawer.style.animation = "";
-      focusOverlayBg.classList.add("hidden");
-    }, 300);
-  }
-});
+  toggleBtn.addEventListener("click", () => {
+    if (focusDrawer.classList.contains("hidden")) {
+      focusDrawer.classList.remove("hidden");
+      focusDrawer.style.animation = "flyFromCorner 0.4s ease-out forwards";
+      focusOverlayBg.classList.remove("hidden");
+    } else {
+      focusDrawer.style.animation = "flyToCorner 0.3s ease-in forwards";
+      setTimeout(() => {
+        focusDrawer.classList.add("hidden");
+        focusDrawer.style.animation = "";
+        focusOverlayBg.classList.add("hidden");
+      }, 300);
+    }
+  });
 
-showFocusHistoryBtn.addEventListener("click", () => {
-  const isHidden = focusHistoryDropdown.classList.contains("hidden");
-  
-  if (isHidden) {
-    // Render content first
-    renderFocusHistory();
-    // Then show and animate
-    focusHistoryDropdown.classList.remove("hidden");
-    focusHistoryDropdown.style.animation = "flyFromCorner 0.4s ease-out forwards";
-  } else {
-    focusHistoryDropdown.style.animation = "flyToCorner 0.1s ease-in forwards";
-    setTimeout(() => {
-      focusHistoryDropdown.classList.add("hidden");
-    }, 100); // Match animation duration
-  }
-});
+  showFocusHistoryBtn.addEventListener("click", async () => {
+    const isHidden = focusHistoryDropdown.classList.contains("hidden");
+    
+    if (isHidden) {
+      // Render content first
+      await renderFocusHistory();
+      // Then show and animate
+      focusHistoryDropdown.classList.remove("hidden");
+      focusHistoryDropdown.style.animation = "flyFromCorner 0.4s ease-out forwards";
+    } else {
+      focusHistoryDropdown.style.animation = "flyToCorner 0.1s ease-in forwards";
+      setTimeout(() => {
+        focusHistoryDropdown.classList.add("hidden");
+      }, 100); // Match animation duration
+    }
+  });
 
-document.getElementById("focusTaskInput").addEventListener("keypress", function (e) {
-  if (e.key === "Enter") {
-    e.preventDefault();
-    focusBtn.click();  // triggers startFocusSession()
-  }
-});
-
-
-
-  
-
-
+  document.getElementById("focusTaskInput").addEventListener("keypress", async function (e) {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      focusBtn.click();  // triggers startFocusSession()
+    }
+  });
 });

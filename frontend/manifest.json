@@ -1,13 +1,19 @@
 {
     "manifest_version": 3,
-    "name": "DENOISE",
+    "name": "Blue Planet",
     "version": "1.0",
     "description": "A mindful new tab with goals and focus mode.",
     "action": {
+      "icon": "icons/bluePlanet.png",
       "default_popup": "index.html"
     },
     "chrome_url_overrides": {
       "newtab": "index.html"
+    },
+    "icons": {
+      "16": "icons/bluePlanet.png",
+      "48": "icons/bluePlanet.png",
+      "128": "icons/bluePlanet.png"
     },
     "permissions": ["storage"]
   }
